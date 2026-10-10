@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aangan Studio · Components Map</title>
+<style>
+  :root{
+    --ink:#1f2330; --muted:#8b90a0; --line:#e7e8ee; --head:#eceef2;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#ffffff;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .page{max-width:2000px;margin:0 auto;padding:34px 40px 26px;}
+  .top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;gap:20px;}
+  .title{font-size:30px;font-weight:800;letter-spacing:-.01em;margin:0;}
+  .kicker{font-size:15px;font-weight:700;color:var(--muted);letter-spacing:.02em;white-space:nowrap;}
+
+  .grid-wrap{position:relative;}
+  svg.arrows{position:absolute;inset:0;width:100%;height:100%;z-index:20;pointer-events:none;}
+
+  .grid{display:grid;grid-template-columns:168px repeat(6,1fr);
+    border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative;z-index:2;background:#fff;}
+
+  .hcell{background:var(--head);padding:16px 10px;text-align:center;font-size:13px;font-weight:700;
+    letter-spacing:.12em;color:#6b7080;border-right:1px solid #dfe1e8;border-bottom:1px solid #dfe1e8;}
+  .hcell:last-child{border-right:none;}
+  .hcell.actor{background:var(--head);}
+
+  .cell{position:relative;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+    min-height:150px;display:flex;align-items:center;justify-content:center;padding:14px 12px;}
+  .cell:nth-child(7n){border-right:none;}
+  .rowlast .cell{border-bottom:none;}
+
+  .actorcell{justify-content:flex-start;padding-left:22px;}
+  .actorcell .bar{position:absolute;left:0;top:0;bottom:0;width:6px;}
+  .actorname{font-size:17px;font-weight:800;line-height:1.2;}
+  .actorrole{font-size:13px;color:var(--muted);margin-top:4px;font-weight:500;}
+
+  .card{width:100%;max-width:230px;border-radius:11px;border:1.5px solid;padding:13px 14px;
+    text-align:center;line-height:1.38;box-shadow:0 1px 2px rgba(20,22,40,.04);}
+  .card .t{font-weight:800;font-size:14.5px;margin-bottom:5px;display:block;}
+  .card .d{font-size:13px;color:#4a4f60;}
+
+  .foot{margin-top:18px;font-size:14px;color:#6b7080;line-height:1.55;}
+  .foot b{color:#3a3f50;}
+
+  @media (max-width:1100px){
+    .page{padding:20px 16px;}
+    .title{font-size:22px;}
+    .grid{grid-template-columns:120px repeat(6,minmax(120px,1fr));overflow-x:auto;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <h1 class="title">Aangan Studio · Inbound Call Agent</h1>
+    <div class="kicker">Components Map</div>
+  </div>
+
+  <div class="grid-wrap">
+    <svg class="arrows" id="arrows"></svg>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+const STAGES = ["TRIGGER","INPUT","CONTEXT","PROCESSING","AI","OUTPUT"];
+
+// color sets: [border/text, cardBorder, cardBg, rowTint, barColor]
+const C = {
+  indigo:{text:"#5b4bc4", border:"#8f7fe8", bg:"#f4f1fe", row:"#faf9ff", bar:"#7c6fe0"},
+  blue:  {text:"#2f6fd0", border:"#7fb0f2", bg:"#eef5fe", row:"#f6faff", bar:"#5b9bf0"},
+  orange:{text:"#cf5a17", border:"#f0a878", bg:"#fdf0e7", row:"#fff9f4", bar:"#ef803c"},
+  slate: {text:"#565a76", border:"#b7bacb", bg:"#f1f2f7", row:"#f8f9fc", bar:"#8a8aa6"},
+  teal:  {text:"#108a78", border:"#6fd2c2", bg:"#e9f9f5", row:"#f3fcfa", bar:"#20b5a0"},
+  green: {text:"#2e8b4f", border:"#8ed3a1", bg:"#edf8ef", row:"#f6fcf7", bar:"#4caf6a"},
+  amber: {text:"#b07d08", border:"#e9c96a", bg:"#fdf6e1", row:"#fffdf5", bar:"#e8b53c"},
+  rose:  {text:"#c2185b", border:"#ed9bba", bg:"#fdeef4", row:"#fff7fa", bar:"#e87aa0"},
+};
+
+// actors (rows). stage -> {id,title,desc}
+const ACTORS = [
+  {name:"Caller", role:"Prospect", c:"indigo", cells:{
+    TRIGGER:{id:"a1", t:"Calls Aangan's number",
+      d:"day or night — including the third of enquiries that land after the front desk has gone home"}}},
+
+  {name:"Vaani Voice Agent", role:"Telephony · voice", c:"blue", cells:{
+    INPUT:{id:"a2", t:"Picks up in seconds",
+      d:"answers every call live, speaks naturally, and turns the conversation into text both ways"}}},
+
+  {name:"Next.js API", role:"Backend", c:"orange", cells:{
+    INPUT:{id:"a3", t:"Runs the call & captures the answers",
+      d:"scope, size, location, timeline, budget cues and who's deciding — the transcript is saved as it goes"}}},
+
+  {name:"Knowledge Base", role:"services · pricing · qualified", c:"slate", cells:{
+    CONTEXT:{id:"a4", t:"Holds the studio's rules",
+      d:"what Aangan does & doesn't do, the service area, Nikhil's five-criteria rubric, and the one approved line on pricing"}}},
+
+  {name:"Agent Brain", role:"Two-pass", c:"teal", cells:{
+    PROCESSING:{id:"a5", t:"Runs the five checks",
+      d:"real project · in our area · workable timeline · budget not clearly off · decision-maker on the call — one unclear → ask once, two fails → decline"},
+    AI:{id:"a6", t:"Talks, deflects, decides",
+      d:"holds a natural conversation, never quotes a price, asks one direct question when a check is unclear, then books, forwards, or declines gracefully"}}},
+
+  {name:"Live Tools", role:"Calendar · booking", c:"green", cells:{
+    CONTEXT:{id:"a7", t:"Offers real consultation slots",
+      d:"reads the designers' calendar and books the free consultation on the call — falls back to a call-back request if nothing fits"}}},
+
+  {name:"Designer Handoff", role:"Telegram", c:"amber", cells:{
+    OUTPUT:{id:"a8", t:"Lead reaches a designer in seconds",
+      d:"with everything already asked — name, scope, size, location, timeline, authority, and any uncertainty flagged"}}},
+
+  {name:"Founder Dashboard", role:"Nikhil's office", c:"rose", cells:{
+    OUTPUT:{id:"a9", t:"The numbers Nikhil pulled by hand",
+      d:"enquiries, response time, % qualified, consultations booked — and cost to run vs. revenue generated, always current"}}},
+];
+
+// arrows: [fromId, toId]
+const FLOW = [
+  ["a1","a2"], ["a2","a3"], ["a3","a4"], ["a4","a5"],
+  ["a5","a6"], ["a7","a6"], ["a6","a8"], ["a6","a9"],
+];
+
+const FOOT = `<b>How it decides:</b> the five checks run first — two fails and the lead is declined gracefully, one check unclear and the agent asks a single direct question. Pricing is always deflected, never quoted — <b>the one thing Nikhil asked for that the pricing guide rules out</b> — and every qualified lead reaches a designer with the questions already answered.`;
+
+// ---- build grid ----
+const grid = document.getElementById("grid");
+// header
+const hActor = el("div","hcell actor","ACTOR"); grid.appendChild(hActor);
+STAGES.forEach(s=>grid.appendChild(el("div","hcell",s)));
+
+ACTORS.forEach((a,ri)=>{
+  const col = C[a.c];
+  const last = ri===ACTORS.length-1 ? " rowlast":"";
+  // actor cell
+  const ac = el("div","cell actorcell"+last);
+  ac.style.background = col.row;
+  const bar = el("div","bar"); bar.style.background = col.bar; ac.appendChild(bar);
+  const nm = document.createElement("div");
+  nm.innerHTML = `<div class="actorname">${a.name}</div><div class="actorrole">${a.role}</div>`;
+  ac.appendChild(nm); grid.appendChild(ac);
+  // stage cells
+  STAGES.forEach(s=>{
+    const cell = el("div","cell"+last);
+    cell.style.background = col.row;
+    const data = a.cells[s];
+    if(data){
+      const card = document.createElement("div");
+      card.className="card"; card.id=data.id;
+      card.style.borderColor=col.border; card.style.background=col.bg;
+      card.innerHTML = `<span class="t" style="color:${col.text}">${data.t}</span><span class="d">${data.d}</span>`;
+      cell.appendChild(card);
+    }
+    grid.appendChild(cell);
+  });
+});
+
+document.getElementById("foot").innerHTML = FOOT;
+
+function el(tag,cls,txt){const e=document.createElement(tag);e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+
+// ---- draw arrows ----
+const svg = document.getElementById("arrows");
+const SVGNS="http://www.w3.org/2000/svg";
+
+function rectLineHit(r, cx, cy){ // point on rect r perimeter toward (cx,cy) from rect center
+  const mx=r.cx, my=r.cy, dx=cx-mx, dy=cy-my;
+  if(dx===0&&dy===0) return {x:mx,y:my};
+  const sx = dx!==0 ? (r.hw/Math.abs(dx)) : Infinity;
+  const sy = dy!==0 ? (r.hh/Math.abs(dy)) : Infinity;
+  const s = Math.min(sx,sy);
+  return {x:mx+dx*s, y:my+dy*s};
+}
+
+function draw(){
+  const wrap = document.querySelector(".grid-wrap").getBoundingClientRect();
+  svg.setAttribute("viewBox",`0 0 ${wrap.width} ${wrap.height}`);
+  svg.innerHTML="";
+  // defs arrowhead
+  const defs=document.createElementNS(SVGNS,"defs");
+  defs.innerHTML=`<marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#9aa0b0"/></marker>`;
+  svg.appendChild(defs);
+
+  FLOW.forEach(([f,t])=>{
+    const ef=document.getElementById(f), et=document.getElementById(t);
+    if(!ef||!et) return;
+    const rf=ef.getBoundingClientRect(), rt=et.getBoundingClientRect();
+    const A={cx:rf.left-wrap.left+rf.width/2, cy:rf.top-wrap.top+rf.height/2, hw:rf.width/2, hh:rf.height/2};
+    const B={cx:rt.left-wrap.left+rt.width/2, cy:rt.top-wrap.top+rt.height/2, hw:rt.width/2, hh:rt.height/2};
+    const p1=rectLineHit(A,B.cx,B.cy), p2=rectLineHit(B,A.cx,A.cy);
+    const path=document.createElementNS(SVGNS,"line");
+    path.setAttribute("x1",p1.x);path.setAttribute("y1",p1.y);
+    path.setAttribute("x2",p2.x);path.setAttribute("y2",p2.y);
+    path.setAttribute("stroke","#9aa0b0");path.setAttribute("stroke-width","1.8");
+    path.setAttribute("stroke-dasharray","6 5");path.setAttribute("marker-end","url(#ah)");
+    svg.appendChild(path);
+  });
+}
+window.addEventListener("load",draw);
+window.addEventListener("resize",draw);
+setTimeout(draw,120);
+</script>
+</body>
+</html>
